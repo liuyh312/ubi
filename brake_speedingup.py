@@ -76,6 +76,7 @@ df["is_meaningless"] = df.groupby("journeyID")["VehSpdLgtA"].transform(lambda v:
 df = df[~df["is_meaningless"]].reset_index(drop = True)
 df = df[["t","date","journeyID","VehSpdLgtA","tg_acceleration","BrkPedlPsdBrkPedlPsd"]]
 
+
 df['suddenbrake'] = 0
 df.loc[(df['BrkPedlPsdBrkPedlPsd']=='NoYes1_Yes') & (df['tg_acceleration']<-1.47 ), 'suddenbrake'] = 1
 
@@ -101,7 +102,6 @@ df_brake = df_brake.reset_index(drop=True)
 df_brake = df_brake[["t","date","journeyID","VehSpdLgtA","tg_acceleration","suddenbraketimes"]]
 
 
- 
 df_brake['st'] = df_brake['t']- df_brake['suddenbraketimes']+1
 df_brake["startdate"] = df_brake["st"].apply(timestamp2date)
 df_brake['suddenbrakeID'] = 1
@@ -125,7 +125,7 @@ for i in range(1,17699):
     if df.loc[i-1,'speedingup'] == 1 and df.loc[i,'speedingup'] == 0:
         df.loc[i,'speedingupsec'] = 0
         
-
+      
 df['speedinguptimes'] = 0
 for i in range(0,17698):      
     if  df.loc[i,'speedingup'] == 1 and df.loc[i+1,'speedingup'] == 0:
@@ -136,7 +136,6 @@ df_speedingup= df_speedingup.reset_index(drop=True)
 df_speedingup = df_speedingup[["t","date","journeyID","VehSpdLgtA","tg_acceleration","speedinguptimes"]]
 
 
- 
 df_speedingup['st'] = df_speedingup['t']- df_speedingup['speedinguptimes']+1
 df_speedingup["startdate"] = df_speedingup["st"].apply(timestamp2date)
 
