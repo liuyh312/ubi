@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import pandas as pd
 import numpy as np
 import time
@@ -41,7 +38,7 @@ def kde2D(x, y, bandwidth, xbins=10j, ybins=10j, **kwargs):
     return xx,yy,zz,z_norm
 
 # read data
-df = pd.read_csv(r"/Users/liuyihang/Desktop/zhidongdata.csv")
+df = pd.read_csv(r"/Users/liuyihang/Desktop/brakedata.csv")
 
 # convert timestamp
 df["date"] = df["t"].apply(timestamp2date)
@@ -85,31 +82,32 @@ df['suddenbrakesec'] = 0
 if df.loc[0,'suddenbrake'] == 1:
     df.loc[0,'suddenbrakesec'] = 1
 
-for i in range(1,17699):
+for i in range(1,len(df)):
     if  df.loc[i,'suddenbrake'] == 1:
         df.loc[i,'suddenbrakesec'] = df.loc[i-1,'suddenbrakesec'] + 1
     if df.loc[i-1,'suddenbrake'] == 1 and df.loc[i,'suddenbrake'] == 0:
         df.loc[i,'suddenbrakesec'] = 0
         
-
-df['suddenbraketimes'] = 0
-for i in range(0,17698):      
+df['suddenbrakeseconds'] = 0
+for i in range(0,len(df)-1):      
     if  df.loc[i,'suddenbrake'] == 1 and df.loc[i+1,'suddenbrake'] == 0:
-        df.loc[i,'suddenbraketimes']= df.loc[i,'suddenbrakesec']
+        df.loc[i,'suddenbrakeseconds']= df.loc[i,'suddenbrakesec']
 
-df_brake = df[df['suddenbraketimes'] !=0 ]
+df_brake = df[df['suddenbrakeseconds'] !=0 ]
 df_brake = df_brake.reset_index(drop=True)
-df_brake = df_brake[["t","date","journeyID","VehSpdLgtA","tg_acceleration","suddenbraketimes"]]
+df_brake = df_brake[["t","date","journeyID","VehSpdLgtA","tg_acceleration","suddenbrakeseconds"]]
 
 
-df_brake['st'] = df_brake['t']- df_brake['suddenbraketimes']+1
-df_brake["startdate"] = df_brake["st"].apply(timestamp2date)
+df_brake['st'] = df_brake['t']- df_brake['suddenbrakeseconds']+1
+df_brake["start"] = df_brake["st"].apply(timestamp2date)
 df_brake['suddenbrakeID'] = 1
-for i in range(1,54): 
+for i in range(1,len(df_brake)): 
     if  df_brake.loc[i,'journeyID'] == df_brake.loc[i-1,'journeyID']:
         df_brake.loc[i,"suddenbrakeID"] = df_brake.loc[i-1,"suddenbrakeID"] + 1
-   
-df_brake = df_brake[["journeyID","suddenbrakeID","startdate","date","suddenbraketimes","VehSpdLgtA","tg_acceleration"]]
+        
+df_brake['end'] = df_brake['date']
+df_brake = df_brake[["journeyID","suddenbrakeID","start","end","suddenbrakeseconds","VehSpdLgtA","tg_acceleration"]]
+
 
 df['speedingup'] = 0
 df.loc[df['tg_acceleration']>1.47 , 'speedingup'] = 1
@@ -119,29 +117,30 @@ df['speedingupsec'] = 0
 if df.loc[0,'speedingup'] == 1:
     df.loc[0,'speedingsec'] = 1
 
-for i in range(1,17699):
+for i in range(1,len(df)):
     if  df.loc[i,'speedingup'] == 1:
         df.loc[i,'speedingupsec'] = df.loc[i-1,'speedingupsec'] + 1
     if df.loc[i-1,'speedingup'] == 1 and df.loc[i,'speedingup'] == 0:
         df.loc[i,'speedingupsec'] = 0
         
-      
-df['speedinguptimes'] = 0
-for i in range(0,17698):      
+
+df['speedingupseconds'] = 0
+for i in range(0,len(df)-1):      
     if  df.loc[i,'speedingup'] == 1 and df.loc[i+1,'speedingup'] == 0:
-        df.loc[i,'speedinguptimes']= df.loc[i,'speedingupsec']
+        df.loc[i,'speedingupseconds']= df.loc[i,'speedingupsec']
 
-df_speedingup = df[df['speedinguptimes'] !=0 ]
+df_speedingup = df[df['speedingupseconds'] !=0 ]
 df_speedingup= df_speedingup.reset_index(drop=True)
-df_speedingup = df_speedingup[["t","date","journeyID","VehSpdLgtA","tg_acceleration","speedinguptimes"]]
+df_speedingup = df_speedingup[["t","date","journeyID","VehSpdLgtA","tg_acceleration","speedingupseconds"]]
 
 
-df_speedingup['st'] = df_speedingup['t']- df_speedingup['speedinguptimes']+1
-df_speedingup["startdate"] = df_speedingup["st"].apply(timestamp2date)
+df_speedingup['st'] = df_speedingup['t']- df_speedingup['speedingupseconds']+1
+df_speedingup["start"] = df_speedingup["st"].apply(timestamp2date)
 
 df_speedingup['speedingupID'] = 1
-for i in range(1,97): 
+for i in range(1,len(df_speedingup)): 
     if  df_speedingup.loc[i,'journeyID'] == df_speedingup.loc[i-1,'journeyID']:
         df_speedingup.loc[i,"speedingupID"] = df_speedingup.loc[i-1,"speedingupID"] + 1
-   
-df_speedingup = df_speedingup[["journeyID","speedingupID","startdate","date","speedinguptimes","VehSpdLgtA","tg_acceleration"]]
+
+df_speedingup['end'] = df_speedingup['date']
+df_speedingup = df_speedingup[["journeyID","speedingupID","start","end","speedingupseconds","VehSpdLgtA","tg_acceleration"]]
